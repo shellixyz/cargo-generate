@@ -162,7 +162,9 @@ mod tests {
     }
 
     fn substitute_filename(f: &str, ctx: &LiquidObjectResource) -> Result<String> {
-        let env = minijinja::Environment::new();
+        let mut env = minijinja::Environment::new();
+        env.set_trim_blocks(true);
+        env.set_lstrip_blocks(true);
 
         super::substitute_filename(f.as_ref(), &env, ctx)
             .map(|p| p.to_str().unwrap().to_string())

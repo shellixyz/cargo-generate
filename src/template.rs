@@ -32,6 +32,12 @@ pub fn create_liquid_engine(
 ) -> Environment<'static> {
     let mut env = Environment::new();
     
+    // Enable automatic whitespace stripping for cleaner output
+    // trim_blocks: removes the first newline after a block tag
+    // lstrip_blocks: removes leading whitespace before a block tag
+    env.set_trim_blocks(true);
+    env.set_lstrip_blocks(true);
+    
     // Register custom filters
     crate::template_filters::register_all_filters(
         &mut env,
@@ -288,6 +294,10 @@ pub fn render_string_gracefully(
     
     // Clone the parser and add template
     let mut env = Environment::new();
+    
+    // Enable automatic whitespace stripping for cleaner output
+    env.set_trim_blocks(true);
+    env.set_lstrip_blocks(true);
     
     // Register filters from the original environment
     crate::template_filters::register_all_filters(
