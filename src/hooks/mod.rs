@@ -84,14 +84,11 @@ pub fn evaluate_script<T: Clone + 'static>(
                 .borrow()
                 .get(name)
                 .map_or(Ok(None), |value| {
-                    Ok(if let Some(b) = value.as_bool() {
-                        Some(rhai::Dynamic::from(b))
-                    } else if let Some(s) = value.as_str() {
-                        Some(rhai::Dynamic::from(s.to_string()))
-                    } else {
-                        Some(rhai::Dynamic::from(value.to_string()))
-                    })
-
+                    Ok(value.as_bool()
+                        .map(rhai::Dynamic::from)
+                        .or_else(|| value.as_str().map(|s| rhai::Dynamic::from(s.to_string())))
+                        .map(Some)
+                        .unwrap_or_else(|| Some(rhai::Dynamic::from(value.to_string()))))
                 })
         }
     });

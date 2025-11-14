@@ -170,14 +170,14 @@ pub fn show_project_variables_with_value(template_object: &LiquidObjectResource,
 
     template_slots
         .iter()
-        .filter(|(k, _)| template_object.lock().unwrap().borrow().contains_key(&k.to_string()))
+        .filter(|(k, _)| template_object.lock().unwrap().borrow().contains_key(**k))
         .for_each(|(k, v)| {
             let name = v.var_name.as_str();
             let value = template_object
                 .lock()
                 .unwrap()
                 .borrow()
-                .get(&k.to_string())
+                .get(*k)
                 .unwrap()
                 .to_string();
             info!(

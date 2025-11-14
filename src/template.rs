@@ -1,12 +1,7 @@
 use anyhow::{bail, Context, Result};
 use console::style;
-use heck::{
-    ToKebabCase, ToLowerCamelCase, ToPascalCase, ToShoutyKebabCase, ToShoutySnakeCase, ToSnakeCase,
-    ToTitleCase, ToUpperCamelCase,
-};
 use indicatif::{MultiProgress, ProgressBar};
 use minijinja::Environment;
-use serde_json;
 use std::sync::{Arc, Mutex};
 use std::{
     cell::RefCell,
@@ -48,28 +43,6 @@ pub fn create_liquid_engine(
     );
     
     env
-}
-
-fn register_template_filters(
-    env: &mut Environment,
-    template_dir: PathBuf,
-    liquid_object: LiquidObjectResource,
-    allow_commands: bool,
-    silent: bool,
-    rhai_filter_files: Arc<Mutex<Vec<PathBuf>>>,
-) {
-    // Register case conversion filters
-    env.add_filter("kebab_case", |s: String| -> String { s.to_kebab_case() });
-    env.add_filter("lower_camel_case", |s: String| -> String { s.to_lower_camel_case() });
-    env.add_filter("pascal_case", |s: String| -> String { s.to_pascal_case() });
-    env.add_filter("shouty_kebab_case", |s: String| -> String { s.to_shouty_kebab_case() });
-    env.add_filter("shouty_snake_case", |s: String| -> String { s.to_shouty_snake_case() });
-    env.add_filter("snake_case", |s: String| -> String { s.to_snake_case() });
-    env.add_filter("title_case", |s: String| -> String { s.to_title_case() });
-    env.add_filter("upper_camel_case", |s: String| -> String { s.to_upper_camel_case() });
-    
-    // Register rhai filter
-    register_rhai_filter(env, template_dir, liquid_object, allow_commands, silent, rhai_filter_files);
 }
 
 /// create liquid object for the template, and pre-fill it with all known variables
@@ -324,25 +297,19 @@ pub fn render_string_gracefully(
     
     // Add and compile the template
     env.add_template(template_name, content)
-        .with_context(|| format!("Failed to add template"))?;
+        .with_context(|| "Failed to add template".to_string())?;
     
     let template = env.get_template(template_name)
-        .with_context(|| format!("Failed to get template"))?;
+        .with_context(|| "Failed to get template".to_string())?;
     
     // Evaluate the template
     match template.render(context_obj) {
-        Ok(result) => {
-            Ok(result)
-        }
+        Ok(result) => Ok(result),
         Err(e) => {
-            // Gracefully handle errors - if a variable is missing, continue with original content
-            let msg = e.to_string();
-            if msg.contains("undefined variable") || msg.contains("no such variable") {
-                Ok(content.to_string())
-            } else {
-                // For other errors, still return the original content
-                Ok(content.to_string())
-            }
+            // Gracefully handle errors - always return original content if rendering fails
+            // (either due to undefined variables or other template errors)
+            let _msg = e.to_string();
+            Ok(content.to_string())
         }
     }
 }
@@ -364,16 +331,4 @@ fn print_files_with_errors_warning(files_with_errors: Vec<(String, String)>) -> 
     let hint = style("Consider adding these files to a `cargo-generate.toml` in the template repo to skip substitution on these files.").bold();
 
     format!("{msg}\n{hint}\n\n{read_more}")
-}
-
-// Placeholder for rhai filter registration - will be implemented in template_filters module
-fn register_rhai_filter(
-    _env: &mut Environment,
-    _template_dir: PathBuf,
-    _liquid_object: LiquidObjectResource,
-    _allow_commands: bool,
-    _silent: bool,
-    _rhai_filter_files: Arc<Mutex<Vec<PathBuf>>>,
-) {
-    // This will be filled in when we implement minijinja support in template_filters.rs
 }

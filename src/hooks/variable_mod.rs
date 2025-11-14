@@ -226,19 +226,13 @@ impl GetNamedValue for LiquidObjectResource {
             .map_err(|_| PoisonError::new_eval_alt_result())?;
         let obj = lock.borrow();
         
-        if let Some(value) = obj.get(name) {
+        Ok(obj.get(name).map_or_else(|| NamedValue::NonExistent, |value| {
             // Try to interpret as bool first
-            if let Some(b) = value.as_bool() {
-                Ok(NamedValue::Bool(b))
-            } else if let Some(s) = value.as_str() {
-                Ok(NamedValue::String(s.to_string()))
-            } else {
-                // Try to convert to string
-                Ok(NamedValue::String(value.to_string()))
-            }
-        } else {
-            Ok(NamedValue::NonExistent)
-        }
+            value.as_bool()
+                .map(NamedValue::Bool)
+                .or_else(|| value.as_str().map(|s| NamedValue::String(s.to_string())))
+                .unwrap_or_else(|| NamedValue::String(value.to_string()))
+        }))
     }
 }
 
