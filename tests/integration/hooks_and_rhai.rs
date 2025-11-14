@@ -323,7 +323,7 @@ fn init_hook_can_set_project_name() {
         .file(
             "init.rhai",
             indoc! {r#"
-                variable::set("project-name", "ProjectBar");
+                variable::set("project_name", "ProjectBar");
             "#},
         )
         .file(
@@ -346,6 +346,7 @@ fn init_hook_can_set_project_name() {
 
     binary()
         .arg_git(template.path())
+        .arg("--silent")
         .current_dir(dir.path())
         .assert()
         .success()
@@ -363,7 +364,7 @@ fn init_hook_can_change_project_name_but_keeps_cli_name_for_destination() {
         .file(
             "init.rhai",
             indoc! {r#"
-                variable::set("project-name", "bar");
+                variable::set("project_name", "bar");
             "#},
         )
         .file(
@@ -402,7 +403,7 @@ fn init_hook_can_change_project_name_but_keeps_init_destination() {
         .file(
             "init.rhai",
             indoc! {r#"
-                variable::set("project-name", "bar");
+                variable::set("project_name", "bar");
             "#},
         )
         .file(

@@ -53,7 +53,9 @@ pub fn create_liquid_object(user_parsed_input: &UserParsedInput) -> Result<Liqui
     let mut liquid_object = serde_json::Map::new();
 
     if let Some(name) = user_parsed_input.name() {
-        liquid_object.insert("project-name".to_string(), serde_json::Value::from(name.to_owned()));
+        let name_value = serde_json::Value::from(name.to_owned());
+        liquid_object.insert("project-name".to_string(), name_value.clone());
+        liquid_object.insert("project_name".to_string(), name_value);
     }
 
     liquid_object.insert(
@@ -62,7 +64,10 @@ pub fn create_liquid_object(user_parsed_input: &UserParsedInput) -> Result<Liqui
     );
     liquid_object.insert("authors".to_string(), serde_json::Value::from(authors.author));
     liquid_object.insert("username".to_string(), serde_json::Value::from(authors.username));
-    liquid_object.insert("os-arch".to_string(), serde_json::Value::from(os_arch));
+    
+    let os_arch_value = serde_json::Value::from(os_arch);
+    liquid_object.insert("os-arch".to_string(), os_arch_value.clone());
+    liquid_object.insert("os_arch".to_string(), os_arch_value);
 
     liquid_object.insert(
         "is_init".to_string(),
@@ -81,10 +86,9 @@ pub fn set_project_name_variables(
     let ref_cell = liquid_object.lock().map_err(|_| PoisonError)?;
     let mut liquid_object = ref_cell.borrow_mut();
 
-    liquid_object.insert(
-        "project-name".to_string(),
-        serde_json::Value::from(project_name.as_ref().to_owned()),
-    );
+    let project_name_value = serde_json::Value::from(project_name.as_ref().to_owned());
+    liquid_object.insert("project-name".to_string(), project_name_value.clone());
+    liquid_object.insert("project_name".to_string(), project_name_value);
 
     liquid_object.insert(
         "crate_name".to_string(),
@@ -305,10 +309,9 @@ pub fn render_string_gracefully(
     // Evaluate the template
     match template.render(context_obj) {
         Ok(result) => Ok(result),
-        Err(e) => {
+        Err(_e) => {
             // Gracefully handle errors - always return original content if rendering fails
             // (either due to undefined variables or other template errors)
-            let _msg = e.to_string();
             Ok(content.to_string())
         }
     }

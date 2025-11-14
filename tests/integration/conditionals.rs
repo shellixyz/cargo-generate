@@ -18,7 +18,7 @@ fn it_can_conditionally_include_files() {
                 ignore = ["included"]
             "# },
         )
-        .file("included", "{{project-name}}")
+        .file("included", "{{project_name}}")
         .file("excluded1", "{{should-not-process}}")
         .file("excluded2", "{{should-not-process}}")
         .init_git()
@@ -55,7 +55,7 @@ fn it_can_conditionally_include_files2() {
                 ignore = ["included"]
             "# },
         )
-        .file("included", "{{project-name}}")
+        .file("included", "{{project_name}}")
         .file("excluded1", "{{should-not-process}}")
         .file("excluded2", "{{should-not-process}}")
         .init_git()
@@ -101,7 +101,7 @@ fn it_can_ask_placeholders_in_multiple_levels() {
                 ignore = ["included"]
             "# },
         )
-        .file("included", "{{project-name}}")
+        .file("included", "{{project_name}}")
         .init_git()
         .build();
 
@@ -135,7 +135,7 @@ fn it_supports_conditions_in_multiple_levels() {
                 ignore = ["included"]
             "# },
         )
-        .file("included", "{{project-name}}")
+        .file("included", "{{project_name}}")
         .init_git()
         .build();
 
@@ -192,7 +192,7 @@ fn it_supports_conditions_with_creepy_shit_inside() {
             "#},
         )
         .file("included", indoc! {r#"
-            {{project-name}}
+            {{project_name}}
             platform = {{ platform }}
             backend = {{ backend }}
             styling = {{ styling }}

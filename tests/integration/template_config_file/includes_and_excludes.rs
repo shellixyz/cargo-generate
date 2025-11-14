@@ -11,7 +11,7 @@ fn it_only_processes_include_files_in_config() {
                 exclude = ["excluded2"]
             "#},
         )
-        .file("included", "{{project-name}}")
+        .file("included", "{{project_name}}")
         .file("excluded1", "{{should-not-process}}")
         .file("excluded2", "{{should-not-process}}")
         .init_git()
@@ -49,8 +49,8 @@ fn it_doesnt_process_excluded_files_in_config() {
                 exclude = ["excluded"]
             "#},
         )
-        .file("included1", "{{project-name}}")
-        .file("included2", "{{project-name}}")
+        .file("included1", "{{project_name}}")
+        .file("included2", "{{project_name}}")
         .file("excluded", "{{should-not-process}}")
         .init_git()
         .build();
@@ -87,9 +87,9 @@ fn it_doesnt_process_excluded_files_in_templated_paths() {
                 exclude = ["excluded"]
             "#},
         )
-        .file("included1", "{{project-name}}")
-        .file("{{project-name}}/included2", "{{project-name}}")
-        .file("{{project-name}}/excluded", "{{should-not-process}}")
+        .file("included1", "{{project_name}}")
+        .file("{{project_name}}/included2", "{{project_name}}")
+        .file("{{project_name}}/excluded", "{{should-not-process}}")
         .init_git()
         .build();
 
@@ -122,12 +122,12 @@ fn it_warns_on_include_and_exclude_in_config() {
             "Cargo.toml",
             indoc! {r#"
                 [package]
-                name = "{{project-name}}"
+                name = "{{project_name}}"
                 description = "A wonderful project"
                 version = "0.1.0"
             "#},
         )
-        .file("not-actually-excluded", "{{project-name}}")
+        .file("not-actually-excluded", "{{project_name}}")
         .file(
             "cargo-generate.toml",
             indoc! {r#"

@@ -5,12 +5,12 @@ fn it_substitutes_filename() {
     let template = tempdir()
         .file("main.rs", r#"extern crate {{crate_name}};"#)
         .file(
-            "{{project-name}}.rs",
-            r#"println!("Welcome in {{project-name}}");"#,
+            "{{project_name}}.rs",
+            r#"println!("Welcome in {{project_name}}");"#,
         )
         .file(
-            "src/{{project-name}}/lib.rs.liquid",
-            r#"println!("Welcome in {{project-name}}-lib");"#,
+            "src/{{project_name}}/lib.rs.liquid",
+            r#"println!("Welcome in {{project_name}}-lib");"#,
         )
         .init_git()
         .build();
@@ -30,15 +30,15 @@ fn it_substitutes_filename() {
         "project should contain foobar-project/main.rs"
     );
     assert!(
-        !dir.exists("foobar-project/{{project-name}}.rs"),
-        "project should NOT contain foobar-project/{{project-name}}.rs"
+        !dir.exists("foobar-project/{{project_name}}.rs"),
+        "project should NOT contain foobar-project/{{project_name}}.rs"
     );
     assert!(
         dir.exists("foobar-project/foobar-project.rs"),
         "project should contain foobar-project/foobar-project.rs"
     );
     assert!(
-        !dir.exists("foobar-project/src/{{project-name}}/lib.rs"),
+        !dir.exists("foobar-project/src/{{project_name}}/lib.rs"),
         "project should NOT contain foobar-project/src/foobar-project/lib.rs.liquid"
     );
     assert!(

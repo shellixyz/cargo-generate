@@ -14,7 +14,7 @@ pub fn create_template(description: &str) -> Project {
             format!(
                 indoc! {r#"
                     [package]
-                    name = "{{{{project-name}}}}"
+                    name = "{{{{project_name}}}}"
                     description = "{}"
                     version = "0.1.0"
                     "#},

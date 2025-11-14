@@ -6,8 +6,8 @@ fn it_substitutes_date() {
         .file(
             "Cargo.toml",
             r#"[package]
-name = "{{project-name}}"
-description = "A wonderful project Copyright {{ "2018-10-04 18:18:45 +0200" | date: "%Y" }}"
+name = "{{project_name}}"
+description = "A wonderful project Copyright {{ "2018-10-04 18:18:45 +0200" | date("%Y") }}"
 version = "0.1.0"
 "#,
         )
@@ -37,7 +37,7 @@ fn it_errors_on_invalid_template() {
             "Cargo.toml",
             r#"[package]
 name = "{{project}<>M>*(&^)-name}}"
-description = "A wonderful project Copyright {{ "2018-10-04 18:18:45 +0200" | date: "%Y" }}"
+description = "A wonderful project Copyright {{ "2018-10-04 18:18:45 +0200" | date("%Y" }}"
 version = "0.1.0"
 "#,
         )
@@ -65,7 +65,7 @@ fn it_quiet_suprresses_warning() {
             "Cargo.toml",
             r#"[package]
 name = "{{project}<>M>*(&^)-name}}"
-description = "A wonderful project Copyright {{ "2018-10-04 18:18:45 +0200" | date: "%Y" }}"
+description = "A wonderful project Copyright {{ "2018-10-04 18:18:45 +0200" | date("%Y") }}"
 version = "0.1.0"
 "#,
         )
@@ -106,7 +106,7 @@ shouty_snake_case = {{"some text" | shouty_snake_case}}
 snake_case = {{"some text" | snake_case}}
 title_case = {{"some text" | title_case}}
 upper_camel_case = {{"some text" | upper_camel_case}}
-without_suffix = {{crate_name | split: "_" | first}}
+without_suffix = {{crate_name | split("_") | first}}
 "#,
         )
         .init_git()

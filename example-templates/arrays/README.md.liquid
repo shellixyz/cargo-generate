@@ -12,7 +12,7 @@
 {%- for item in features %}
   - {{ features }}
 {%- endfor %}
-- joined by a filter: {{ features | join: ", " }}
+- joined by a filter: {{ features | join(", ") }}
 
 ## (new) Array with multiple items
 
@@ -21,7 +21,7 @@
 {%- for item in multi_choice %}
   - {{ item }}
 {%- endfor %}
-- joined by a filter: {{ multi_choice | join: ", " }}
+- joined by a filter: {{ multi_choice | join(", ") }}
 
 ## Use Cases for arrays
 
@@ -38,24 +38,22 @@ serde_json = { version = "1.0", optional = true }
 tokio = { version = "1.0", optional = true }
 
 [features]
-{%- if features == empty %}
+{%- if features|length == 0 %}
 # we have empty features
 {%- else %}
 # we have features
 {%- endif -%}
 
-{% unless features == empty %}
+{% if features|length > 0 %}
 default = [
-{%- comment -%}
-
+{# 
 Here we use the template variables as shown above to define what are the default features of the crate
-
-{%- endcomment -%}
+#}
 {%- for feature in features -%}
-    "{{ feature }}"{% unless forloop.last %}, {% endunless -%}
+    "{{ feature }}"{% if not loop.last %}, {% endif -%}
 {%- endfor -%}
 ]
-{%- endunless %}
+{% endif %}
 serde = ["serde_json"]
 async = ["tokio"]
 ```

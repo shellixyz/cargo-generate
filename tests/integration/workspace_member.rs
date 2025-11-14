@@ -18,7 +18,7 @@ fn it_should_add_a_new_project_to_the_workspace_members() {
             "Cargo.toml",
             indoc! {r#"
                 [package]
-                name = "{{project-name}}"
+                name = "{{project_name}}"
                 version = "0.1.0"
             "#},
         )

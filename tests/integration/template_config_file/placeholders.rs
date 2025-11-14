@@ -109,7 +109,7 @@ fn it_accepts_empty_multi_choices() {
         .file(
             "README.md.liquid",
             indoc! {r#"
-                {%- if formats == empty -%}
+                {%- if formats|length == 0 -%}
                 we have empty formats
                 {%- else -%}
                 we have NOT empty formats
@@ -164,7 +164,7 @@ fn it_renders_arrays_as_list() {
             "mcu_as_list",
             indoc! {r#"
                 [{%- for m in mcu -%}
-                    "{{ m }}"{% unless forloop.last %}, {% endunless -%}
+                    "{{ m }}"{% if not loop.last %}, {% endif -%}
                 {%- endfor -%}]"#},
         )
         .init_git()

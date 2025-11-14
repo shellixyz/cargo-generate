@@ -111,7 +111,7 @@ fn it_accepts_bool_in_file() {
                 ignore = ["included"]
             "# },
         )
-        .file("included", "{{project-name}}")
+        .file("included", "{{project_name}}")
         .init_git()
         .build();
 
@@ -285,7 +285,7 @@ fn it_accepts_values_via_long_option() {
             "Cargo.toml",
             indoc! {r#"
                 [package]
-                name = "{{project-name}}"
+                name = "{{project_name}}"
                 description = "{{my_value}}"
                 version = "0.1.0"
             "#},
@@ -316,7 +316,7 @@ fn it_accepts_values_via_short_option() {
             "Cargo.toml",
             indoc! {r#"
                 [package]
-                name = "{{project-name}}"
+                name = "{{project_name}}"
                 description = "{{my_value}}"
                 version = "0.1.0"
             "#},
@@ -354,7 +354,7 @@ fn cli_value_overrides_others() {
             "Cargo.toml",
             indoc! {r#"
                 [package]
-                name = "{{project-name}}"
+                name = "{{project_name}}"
                 description = "{{my_value}}"
                 version = "0.1.0"
             "#},
@@ -387,7 +387,7 @@ fn cli_values_are_checked_via_regex() {
             "Cargo.toml",
             indoc! {r#"
                 [package]
-                name = "{{project-name}}"
+                name = "{{project_name}}"
                 description = "{{my_value}}"
                 version = "0.1.0"
             "#},

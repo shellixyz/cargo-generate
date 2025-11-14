@@ -59,7 +59,7 @@ fn favorite_subfolder_must_be_valid() {
             "inner/Cargo.toml",
             indoc! {r#"
                 [package]
-                name = "{{project-name}}"
+                name = "{{project_name}}"
                 description = "A wonderful project"
                 version = "0.1.0"
             "#},
@@ -103,7 +103,7 @@ fn favorite_with_subfolder() -> anyhow::Result<()> {
             "inner/Cargo.toml",
             indoc! {r#"
                 [package]
-                name = "{{project-name}}"
+                name = "{{project_name}}"
                 description = "A wonderful project"
                 version = "0.1.0"
             "#},
@@ -194,7 +194,7 @@ fn favorites_can_use_default_values() {
             "Cargo.toml",
             indoc! {r#"
             [package]
-            name = "{{project-name}}"
+            name = "{{project_name}}"
             description = "{{my_value}}"
             version = "0.1.0"
         "#},
@@ -256,7 +256,7 @@ fn favorites_default_value_can_be_overridden_by_environment() {
             "Cargo.toml",
             indoc! {r#"
             [package]
-            name = "{{project-name}}"
+            name = "{{project_name}}"
             description = "{{my_value}}"
             version = "0.1.0"
         "#},
@@ -312,7 +312,7 @@ fn favorite_can_specify_to_be_generated_into_cwd() -> anyhow::Result<()> {
             "Cargo.toml",
             indoc! {r#"
                 [package]
-                name = "{{project-name}}"
+                name = "{{project_name}}"
                 description = "A wonderful project"
                 version = "0.1.0"
                 "#},

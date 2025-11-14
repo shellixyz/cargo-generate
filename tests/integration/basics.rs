@@ -71,7 +71,7 @@ fn it_substitutes_authors_and_username() {
         .file(
             "Cargo.toml",
             r#"[package]
-name = "{{project-name}}"
+name = "{{project_name}}"
 authors = "{{authors}}"
 description = "A wonderful project by {{username}}"
 version = "0.1.0"
@@ -104,7 +104,7 @@ version = "0.1.0"
 #[test]
 fn it_substitutes_os_arch() {
     let template = tempdir()
-        .file("some-file", r#"{{os-arch}}"#)
+        .file("some-file", r#"{{os_arch}}"#)
         .init_git()
         .build();
 
@@ -447,7 +447,7 @@ fn it_always_removes_cargo_ok_file() {
             "Cargo.toml",
             indoc! {r#"
                 [package]
-                name = "{{project-name}}"
+                name = "{{project_name}}"
                 description = "A wonderful project"
                 version = "0.1.0"
             "#},
@@ -477,7 +477,7 @@ fn it_removes_genignore_files_before_substitution() {
             "Cargo.toml",
             indoc! {r#"
                 [package]
-                name = "{{project-name}}"
+                name = "{{project_name}}"
                 description = "A wonderful project"
                 version = "0.1.0"
             "#},
@@ -508,7 +508,7 @@ fn it_does_not_remove_files_from_outside_project_dir() {
             "Cargo.toml",
             indoc! {r#"
                 [package]
-                name = "{{project-name}}"
+                name = "{{project_name}}"
                 description = "A wonderful project"
                 version = "0.1.0"
             "#},
@@ -557,7 +557,7 @@ fn errant_ignore_entry_doesnt_affect_template_files() {
             "Cargo.toml",
             indoc! {r#"
                 [package]
-                name = "{{project-name}}"
+                name = "{{project_name}}"
                 description = "A wonderful project"
                 version = "0.1.0"
             "#},
@@ -604,7 +604,7 @@ fn it_loads_a_submodule() {
             "Cargo.toml",
             indoc! { r#"
                 [package]
-                name = "{{project-name}}"
+                name = "{{project_name}}"
                 description = "A wonderful project"
                 version = "0.1.0"
             "#},
@@ -638,7 +638,7 @@ fn it_allows_relative_paths() {
             "Cargo.toml",
             indoc! { r#"
                 [package]
-                name = "{{project-name}}"
+                name = "{{project_name}}"
                 description = "A wonderful project"
                 version = "0.1.0"
             "#},
@@ -719,7 +719,7 @@ fn it_doesnt_warn_with_neither_config_nor_ignore() {
 #[test]
 fn it_processes_dot_github_directory_files() {
     let template = tempdir()
-        .file(".github/foo.txt", "{{project-name}}")
+        .file(".github/foo.txt", "{{project_name}}")
         .init_git()
         .build();
     let dir = tempdir().build();
@@ -739,7 +739,7 @@ fn it_processes_dot_github_directory_files() {
 #[test]
 fn it_ignore_tags_inside_raw_block() {
     let raw_body = r#"{{badges}}
-# {{crate}} {{project-name}}
+# {{crate}} {{project_name}}
 {{readme}}
 {{license}}
 ## Contribution
@@ -771,7 +771,7 @@ _This README was generated with [cargo-readme](https://github.com/livioribeiro/c
     let template = dir.read("foobar-project/README.tpl");
     assert!(template.contains("{{badges}}"));
     assert!(template.contains("{{crate}}"));
-    assert!(template.contains("{{project-name}}"));
+    assert!(template.contains("{{project_name}}"));
     assert!(template.contains("{{readme}}"));
     assert!(template.contains("{{license}}"));
 }
@@ -806,7 +806,7 @@ fn it_provides_crate_type_lib() {
         .file(
             "Cargo.toml",
             r#"[package]
-name = "{{project-name}}"
+name = "{{project_name}}"
 description = "this is a {{crate_type}}"
 version = "0.1.0"
 "#,
@@ -836,7 +836,7 @@ fn it_provides_crate_type_bin() {
         .file(
             "Cargo.toml",
             r#"[package]
-name = "{{project-name}}"
+name = "{{project_name}}"
 description = "this is a {{crate_type}}"
 version = "0.1.0"
 "#,
@@ -893,9 +893,9 @@ fn it_skips_substitution_for_unknown_variables_in_cargo_toml() {
         .file(
             "Cargo.toml",
             r#"[package]
-name = "{{ project-name }}"
-description = "{{ project-description }}"
-description2 = "{{ project-some-other-thing }}"
+name = "{{project_name}}"
+description = "{{ project_description }}"
+description2 = "{{ project_some_other_thing }}"
 version = "0.1.0"
 "#,
         )
@@ -916,14 +916,14 @@ version = "0.1.0"
     assert!(
         dir.read("foobar-project/Cargo.toml")
             .contains("foobar-project"),
-        "project-name was not substituted"
+        "project_name was not substituted"
     );
     assert!(!dir
         .read("foobar-project/Cargo.toml")
-        .contains("{{ project-description }}"));
+        .contains("{{ project_description }}"));
     assert!(!dir
         .read("foobar-project/Cargo.toml")
-        .contains("{{ project-some-other-thing }}"));
+        .contains("{{ project_some_other_thing }}"));
 }
 
 #[test]

@@ -45,7 +45,7 @@ impl ProjectBuilder {
             "Cargo.toml",
             indoc! {r#"
                 [package]
-                name = "{{project-name}}"
+                name = "{{project_name}}"
                 description = "A wonderful project"
                 version = "0.1.0"
             "#},
