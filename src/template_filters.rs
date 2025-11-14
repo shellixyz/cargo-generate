@@ -111,8 +111,8 @@ fn rhai_filter(filename: &str, template_dir: &PathBuf) -> String {
 
 fn execute_rhai_script(script_content: &str) -> Result<String, Box<dyn std::error::Error>> {
     use rhai::Engine;
-    
-    let mut engine = Engine::new();
+
+    let engine = Engine::new();
     let result: rhai::Dynamic = engine.eval(script_content)?;
     Ok(result.to_string())
 }
