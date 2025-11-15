@@ -10,7 +10,7 @@ use rhai::EvalAltResult;
 use std::{env, path::Path};
 
 use crate::emoji;
-use crate::template::LiquidObjectResource;
+use crate::template::TemplateObjectResource;
 
 mod context;
 mod env_mod;
@@ -69,16 +69,16 @@ fn evaluate_scripts(template_dir: &Path, scripts: &[String], engine: rhai::Engin
 }
 
 pub fn evaluate_script<T: Clone + 'static>(
-    liquid_object: &LiquidObjectResource,
+    template_object: &TemplateObjectResource,
     script: &str,
 ) -> HookResult<T> {
     let mut conditional_evaluation_engine = rhai::Engine::new();
 
     #[allow(deprecated)]
     conditional_evaluation_engine.on_var({
-        let liquid_object = liquid_object.clone();
+        let template_object = template_object.clone();
         move |name, _, _| {
-            liquid_object
+            template_object
                 .lock()
                 .map_err(|_| PoisonError::new_eval_alt_result())?
                 .borrow()
@@ -100,7 +100,7 @@ pub fn create_rhai_engine(context: &RhaiHooksContext) -> rhai::Engine {
     let mut engine = rhai::Engine::new();
 
     // register modules
-    let module = variable_mod::create_module(&context.liquid_object);
+    let module = variable_mod::create_module(&context.template_object);
     engine.register_static_module("variable", module.into());
 
     let module = file_mod::create_module(&context.working_directory);

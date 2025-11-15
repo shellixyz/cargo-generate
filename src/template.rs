@@ -21,11 +21,11 @@ use crate::template_variables::{
 };
 use crate::user_parsed_input::UserParsedInput;
 
-pub type LiquidObjectResource = Arc<Mutex<RefCell<serde_json::Map<String, serde_json::Value>>>>;
+pub type TemplateObjectResource = Arc<Mutex<RefCell<serde_json::Map<String, serde_json::Value>>>>;
 
-pub fn create_liquid_engine(
+pub fn create_minijinja_engine(
     template_dir: PathBuf,
-    liquid_object: LiquidObjectResource,
+    template_object: TemplateObjectResource,
     allow_commands: bool,
     silent: bool,
     rhai_filter_files: Arc<Mutex<Vec<PathBuf>>>,
@@ -45,7 +45,7 @@ pub fn create_liquid_engine(
     crate::template_filters::register_all_filters(
         &mut env,
         template_dir,
-        liquid_object,
+        template_object,
         allow_commands,
         silent,
         rhai_filter_files,
@@ -54,57 +54,57 @@ pub fn create_liquid_engine(
     env
 }
 
-/// create liquid object for the template, and pre-fill it with all known variables
-pub fn create_liquid_object(user_parsed_input: &UserParsedInput) -> Result<LiquidObjectResource> {
+/// create template object for the template, and pre-fill it with all known variables
+pub fn create_template_object(user_parsed_input: &UserParsedInput) -> Result<TemplateObjectResource> {
     let authors: Authors = get_authors()?;
     let os_arch = get_os_arch();
 
-    let mut liquid_object = serde_json::Map::new();
+    let mut template_object = serde_json::Map::new();
 
     if let Some(name) = user_parsed_input.name() {
         let name_value = serde_json::Value::from(name.to_owned());
-        liquid_object.insert("project-name".to_string(), name_value.clone());
-        liquid_object.insert("project_name".to_string(), name_value);
+        template_object.insert("project-name".to_string(), name_value.clone());
+        template_object.insert("project_name".to_string(), name_value);
     }
 
-    liquid_object.insert(
+    template_object.insert(
         "crate_type".to_string(),
         serde_json::Value::from(user_parsed_input.crate_type().to_string()),
     );
-    liquid_object.insert("authors".to_string(), serde_json::Value::from(authors.author));
-    liquid_object.insert("username".to_string(), serde_json::Value::from(authors.username));
+    template_object.insert("authors".to_string(), serde_json::Value::from(authors.author));
+    template_object.insert("username".to_string(), serde_json::Value::from(authors.username));
     
     let os_arch_value = serde_json::Value::from(os_arch);
-    liquid_object.insert("os-arch".to_string(), os_arch_value.clone());
-    liquid_object.insert("os_arch".to_string(), os_arch_value);
+    template_object.insert("os-arch".to_string(), os_arch_value.clone());
+    template_object.insert("os_arch".to_string(), os_arch_value);
 
-    liquid_object.insert(
+    template_object.insert(
         "is_init".to_string(),
         serde_json::Value::from(user_parsed_input.init()),
     );
 
-    Ok(Arc::new(Mutex::new(RefCell::new(liquid_object))))
+    Ok(Arc::new(Mutex::new(RefCell::new(template_object))))
 }
 
 pub fn set_project_name_variables(
-    liquid_object: &LiquidObjectResource,
+    template_object: &TemplateObjectResource,
     project_dir: &ProjectDir,
     project_name: &ProjectName,
     crate_name: &CrateName,
 ) -> Result<()> {
-    let ref_cell = liquid_object.lock().map_err(|_| PoisonError)?;
-    let mut liquid_object = ref_cell.borrow_mut();
+    let ref_cell = template_object.lock().map_err(|_| PoisonError)?;
+    let mut template_obj = ref_cell.borrow_mut();
 
     let project_name_value = serde_json::Value::from(project_name.as_ref().to_owned());
-    liquid_object.insert("project-name".to_string(), project_name_value.clone());
-    liquid_object.insert("project_name".to_string(), project_name_value);
+    template_obj.insert("project-name".to_string(), project_name_value.clone());
+    template_obj.insert("project_name".to_string(), project_name_value);
 
-    liquid_object.insert(
+    template_obj.insert(
         "crate_name".to_string(),
         serde_json::Value::from(crate_name.as_ref().to_owned()),
     );
 
-    liquid_object.insert(
+    template_obj.insert(
         "within_cargo_project".to_string(),
         serde_json::Value::from(is_within_cargo_project(project_dir.as_ref())),
     );
@@ -123,7 +123,7 @@ pub fn walk_dir(
     template_config: &mut TemplateConfig,
     project_dir: &Path,
     hook_files: &[String],
-    liquid_object: &LiquidObjectResource,
+    template_object: &TemplateObjectResource,
     rhai_engine: Environment,
     rhai_filter_files: &Arc<Mutex<Vec<PathBuf>>>,
     mp: &mut MultiProgress,
@@ -186,14 +186,14 @@ pub fn walk_dir(
         match matcher.should_include(relative_path) {
             ShouldInclude::Include => {
                 if entry.file_type().is_file() {
-                    match template_process_file(liquid_object, &rhai_engine, filename, preserve_whitespace) {
+                    match template_process_file(template_object, &rhai_engine, filename, preserve_whitespace) {
                         Err(e) => {
                             files_with_errors
                                 .push((relative_path.display().to_string(), e.to_string()));
                         }
                         Ok(new_contents) => {
                             let new_filename =
-                                substitute_filename(filename, &rhai_engine, liquid_object, preserve_whitespace)
+                                substitute_filename(filename, &rhai_engine, template_object, preserve_whitespace)
                                     .with_context(|| {
                                         format!(
                                             "{} {} `{}`",
@@ -222,7 +222,7 @@ pub fn walk_dir(
                         }
                     }
                 } else {
-                    let new_filename = substitute_filename(filename, &rhai_engine, liquid_object, preserve_whitespace)?;
+                    let new_filename = substitute_filename(filename, &rhai_engine, template_object, preserve_whitespace)?;
                     let relative_path = new_filename.strip_prefix(project_dir)?;
                     let f = relative_path.display();
                     pb.inc(50);
@@ -234,7 +234,7 @@ pub fn walk_dir(
                 }
             }
             ShouldInclude::Exclude => {
-                let new_filename = substitute_filename(filename, &rhai_engine, liquid_object, preserve_whitespace)?;
+                let new_filename = substitute_filename(filename, &rhai_engine, template_object, preserve_whitespace)?;
                 let mut f = filename_display;
                 // Check if the file to exclude is in a templated path
                 // If it is, we need to copy it to the new location
@@ -270,7 +270,7 @@ pub fn walk_dir(
 }
 
 fn template_process_file(
-    context: &LiquidObjectResource,
+    context: &TemplateObjectResource,
     parser: &Environment,
     file: &Path,
     preserve_whitespace: bool,
@@ -281,7 +281,7 @@ fn template_process_file(
 }
 
 pub fn render_string_gracefully(
-    context: &LiquidObjectResource,
+    context: &TemplateObjectResource,
     _parser: &Environment,
     content: &str,
     preserve_whitespace: bool,

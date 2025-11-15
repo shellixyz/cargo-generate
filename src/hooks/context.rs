@@ -1,10 +1,10 @@
 use std::fmt;
 use std::path::PathBuf;
 
-use crate::template::LiquidObjectResource;
+use crate::template::TemplateObjectResource;
 
 pub struct RhaiHooksContext {
-    pub liquid_object: LiquidObjectResource,
+    pub template_object: TemplateObjectResource,
     pub allow_commands: bool,
     pub silent: bool,
     pub working_directory: PathBuf,
@@ -14,7 +14,7 @@ pub struct RhaiHooksContext {
 impl fmt::Debug for RhaiHooksContext {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("RhaiHooksContext")
-            .field("liquid_object", &"<LiquidObjectResource>")
+            .field("template_object", &"<TemplateObjectResource>")
             .field("allow_commands", &self.allow_commands)
             .field("silent", &self.silent)
             .field("working_directory", &self.working_directory)

@@ -10,7 +10,7 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use crate::template::LiquidObjectResource;
+use crate::template::TemplateObjectResource;
 use log::warn;
 
 // This file is now mainly a placeholder since minijinja filters are registered
@@ -21,7 +21,7 @@ use log::warn;
 pub fn register_all_filters(
     env: &mut Environment,
     template_dir: PathBuf,
-    _liquid_object: LiquidObjectResource,
+    _template_object: TemplateObjectResource,
     _allow_commands: bool,
     _silent: bool,
     _rhai_filter_files: Arc<Mutex<Vec<PathBuf>>>,

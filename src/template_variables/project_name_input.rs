@@ -4,21 +4,21 @@ use anyhow::anyhow;
 use console::style;
 
 use crate::{
-    emoji, interactive, template::LiquidObjectResource, user_parsed_input::UserParsedInput,
+    emoji, interactive, template::TemplateObjectResource, user_parsed_input::UserParsedInput,
 };
 use log::warn;
 
 #[derive(Debug)]
 pub struct ProjectNameInput(pub(crate) String);
 
-impl TryFrom<(&LiquidObjectResource, &UserParsedInput)> for ProjectNameInput {
+impl TryFrom<(&TemplateObjectResource, &UserParsedInput)> for ProjectNameInput {
     type Error = anyhow::Error;
 
     fn try_from(
-        (liquid_object, user_parsed_input): (&LiquidObjectResource, &UserParsedInput),
+        (template_object, user_parsed_input): (&TemplateObjectResource, &UserParsedInput),
     ) -> Result<Self, Self::Error> {
         let name_str = {
-            let guard = liquid_object.lock().unwrap();
+            let guard = template_object.lock().unwrap();
             let borrowed_obj = guard.borrow();
             
             // Try underscore version first (set by init hooks) then fall back to hyphenated version (from CLI)

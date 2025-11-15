@@ -6,7 +6,7 @@ use std::{
     path::Path,
 };
 
-pub const LIQUID_SUFFIX: &str = ".liquid";
+pub const TEMPLATE_SUFFIX: &str = ".liquid";
 
 pub fn copy_files_recursively(
     src: impl AsRef<Path>,
@@ -56,7 +56,7 @@ fn copy_file(src_path: &Path, dst: &Path, overwrite: bool) -> Result<()> {
     let dst_path = dst.join(&filename);
     let mut overwrite = overwrite;
 
-    if let Some(new_filename) = filename.strip_suffix(LIQUID_SUFFIX) {
+    if let Some(new_filename) = filename.strip_suffix(TEMPLATE_SUFFIX) {
         if src_path.with_file_name(new_filename).exists() {
             // if there is a file without the .liquid suffix, we want to set overwrite to true
             // so that this liquid file takes precedence over the existing file
@@ -68,7 +68,7 @@ fn copy_file(src_path: &Path, dst: &Path, overwrite: bool) -> Result<()> {
         let dst_path = dst.join(new_filename);
         safe_copy(src_path, &dst_path, overwrite)?;
     } else if src_path
-        .with_file_name(format!("{filename}{LIQUID_SUFFIX}"))
+        .with_file_name(format!("{filename}{TEMPLATE_SUFFIX}"))
         .exists()
     {
         // there is a liquid file for this non-liquid file,

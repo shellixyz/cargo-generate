@@ -116,7 +116,7 @@ mod tests {
 
     use crate::{
         hooks::{create_rhai_engine, RhaiHooksContext},
-        template::LiquidObjectResource,
+        template::TemplateObjectResource,
     };
     use rhai::Array;
     use tempfile::TempDir;
@@ -224,7 +224,7 @@ mod tests {
         RhaiHooksContext {
             working_directory: tmp_dir.path().to_path_buf(),
             destination_directory: tmp_dir.path().join("destination").to_path_buf(),
-            liquid_object: LiquidObjectResource::default(),
+            template_object: TemplateObjectResource::default(),
             allow_commands: true,
             silent: true,
         }

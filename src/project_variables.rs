@@ -10,7 +10,7 @@ use console::style;
 use crate::{
     config::{Config, TemplateSlotsTable},
     interactive::LIST_SEP,
-    template::LiquidObjectResource,
+    template::TemplateObjectResource,
 };
 
 #[derive(Debug)]
@@ -160,7 +160,7 @@ const RESERVED_NAMES: [&str; 7] = [
     "is_init",
 ];
 
-pub fn show_project_variables_with_value(template_object: &LiquidObjectResource, config: &Config) {
+pub fn show_project_variables_with_value(template_object: &TemplateObjectResource, config: &Config) {
     let template_slots = config
         .placeholders
         .as_ref()
@@ -190,7 +190,7 @@ pub fn show_project_variables_with_value(template_object: &LiquidObjectResource,
 
 /// For each defined placeholder, try to add it with value as a variable to the template_object.
 pub fn fill_project_variables(
-    template_object: &LiquidObjectResource,
+    template_object: &TemplateObjectResource,
     config: &Config,
     value_provider: impl Fn(&TemplateSlots) -> Result<serde_json::Value>,
 ) -> Result<()> {

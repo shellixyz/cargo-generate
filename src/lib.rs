@@ -45,13 +45,13 @@ mod workspace_member;
 
 pub use crate::app_config::{app_config_path, AppConfig};
 pub use crate::favorites::list_favorites;
-use crate::template::create_liquid_engine;
+use crate::template::create_minijinja_engine;
 pub use args::*;
 
 use anyhow::{anyhow, bail, Context, Result};
 use config::{locate_template_configs, Config, CONFIG_FILE_NAME};
 use console::style;
-use copy::{copy_files_recursively, LIQUID_SUFFIX};
+use copy::{copy_files_recursively, TEMPLATE_SUFFIX};
 use env_logger::fmt::Formatter;
 use fs_err as fs;
 use hooks::{execute_hooks, RhaiHooksContext};
@@ -80,7 +80,7 @@ use crate::{project_variables::ConversionError, template_variables::ProjectName}
 use self::config::TemplateConfig;
 use self::git::try_get_branch_from_path;
 use self::hooks::evaluate_script;
-use self::template::{create_liquid_object, set_project_name_variables, LiquidObjectResource};
+use self::template::{create_template_object, set_project_name_variables, TemplateObjectResource};
 
 /// Logging formatter function
 pub fn log_formatter(
@@ -263,7 +263,7 @@ fn get_source_template_into_temp(
             );
             if let Ok((ref temp_dir, _)) = result {
                 git::remove_history(temp_dir.path())?;
-                strip_liquid_suffixes(temp_dir.path())?;
+                strip_template_suffixes(temp_dir.path())?;
             };
             result
         }
@@ -276,17 +276,17 @@ fn get_source_template_into_temp(
     }
 }
 
-/// remove .liquid suffixes from git templates for parity with path templates
-fn strip_liquid_suffixes(dir: impl AsRef<Path>) -> Result<()> {
+/// remove .template suffixes from git templates for parity with path templates
+fn strip_template_suffixes(dir: impl AsRef<Path>) -> Result<()> {
     for entry in fs::read_dir(dir.as_ref())? {
         let entry = entry?;
         let entry_type = entry.file_type()?;
 
         if entry_type.is_dir() {
-            strip_liquid_suffixes(entry.path())?;
+            strip_template_suffixes(entry.path())?;
         } else if entry_type.is_file() {
             let path = entry.path().to_string_lossy().to_string();
-            if let Some(new_path) = path.clone().strip_suffix(LIQUID_SUFFIX) {
+            if let Some(new_path) = path.clone().strip_suffix(TEMPLATE_SUFFIX) {
                 fs::rename(path, new_path)?;
             }
         }
@@ -452,9 +452,9 @@ fn expand_template(
     user_parsed_input: &UserParsedInput,
     args: &GenerateArgs,
 ) -> Result<PathBuf> {
-    let liquid_object = create_liquid_object(user_parsed_input)?;
+    let template_object = create_template_object(user_parsed_input)?;
     let context = RhaiHooksContext {
-        liquid_object: liquid_object.clone(),
+        template_object: template_object.clone(),
         allow_commands: user_parsed_input.allow_commands(),
         silent: user_parsed_input.silent(),
         working_directory: template_dir.to_owned(),
@@ -468,7 +468,7 @@ fn expand_template(
     // use).
     execute_hooks(&context, &config.get_init_hooks())?;
 
-    let project_name_input = ProjectNameInput::try_from((&liquid_object, user_parsed_input))?;
+    let project_name_input = ProjectNameInput::try_from((&template_object, user_parsed_input))?;
     let project_name = ProjectName::from((&project_name_input, user_parsed_input));
     let crate_name = CrateName::from(&project_name_input);
     let destination = ProjectDir::try_from((&project_name_input, user_parsed_input))?;
@@ -476,7 +476,7 @@ fn expand_template(
         destination.create()?;
     }
 
-    set_project_name_variables(&liquid_object, &destination, &project_name, &crate_name)?;
+    set_project_name_variables(&template_object, &destination, &project_name, &crate_name)?;
 
     info!(
         "{} {} {}",
@@ -490,7 +490,7 @@ fn expand_template(
         style(format!("project-name: {project_name}")).bold(),
         style("...").bold()
     );
-    project_variables::show_project_variables_with_value(&liquid_object, config);
+    project_variables::show_project_variables_with_value(&template_object, config);
 
     info!(
         "{} {} {}",
@@ -502,14 +502,14 @@ fn expand_template(
     // evaluate config for placeholders and and any that are undefined
     fill_placeholders_and_merge_conditionals(
         config,
-        &liquid_object,
+        &template_object,
         user_parsed_input.template_values(),
         args,
     )?;
-    add_missing_provided_values(&liquid_object, user_parsed_input.template_values())?;
+    add_missing_provided_values(&template_object, user_parsed_input.template_values())?;
 
     let context = RhaiHooksContext {
-        liquid_object: Arc::clone(&liquid_object),
+        template_object: Arc::clone(&template_object),
         destination_directory: destination.as_ref().to_owned(),
         ..context
     };
@@ -526,9 +526,9 @@ fn expand_template(
     let mut pbar = progressbar::new();
 
     let rhai_filter_files = Arc::new(Mutex::new(vec![]));
-    let rhai_engine = create_liquid_engine(
+    let rhai_engine = create_minijinja_engine(
         template_dir.to_owned(),
-        liquid_object.clone(),
+        template_object.clone(),
         user_parsed_input.allow_commands(),
         user_parsed_input.silent(),
         rhai_filter_files.clone(),
@@ -538,7 +538,7 @@ fn expand_template(
         &mut template_config,
         template_dir,
         &all_hook_files,
-        &liquid_object,
+        &template_object,
         rhai_engine,
         &rhai_filter_files,
         &mut pbar,
@@ -580,16 +580,16 @@ fn expand_template(
     Ok(destination.as_ref().to_owned())
 }
 
-/// Try to add all provided `template_values` to the `liquid_object`.
+/// Try to add all provided `template_values` to the `template_object`.
 ///
 /// ## Note:
 /// Values for which a placeholder exists, should already be filled by `fill_project_variables`
 pub(crate) fn add_missing_provided_values(
-    liquid_object: &LiquidObjectResource,
+    template_object: &TemplateObjectResource,
     template_values: &HashMap<String, toml::Value>,
 ) -> Result<(), anyhow::Error> {
     template_values.iter().try_for_each(|(k, v)| {
-        let map = liquid_object.lock().unwrap();
+        let map = template_object.lock().unwrap();
         let borrowed = map.borrow();
         if borrowed.contains_key(k.as_str()) {
             return Ok(());
@@ -597,7 +597,7 @@ pub(crate) fn add_missing_provided_values(
         drop(borrowed);
         drop(map);
         
-        // we have a value without a slot in the liquid object.
+        // we have a value without a slot in the template object.
         // try to create the slot from the provided value
         let value = match v {
             toml::Value::String(content) => serde_json::Value::from(content.clone()),
@@ -610,7 +610,7 @@ pub(crate) fn add_missing_provided_values(
                     .red(),
             )),
         };
-        liquid_object
+        template_object
             .lock()
             .unwrap()
             .borrow_mut()
@@ -666,10 +666,10 @@ fn extract_toml_string(value: &toml::Value) -> Option<String> {
     }
 }
 
-// Evaluate the configuration, adding defined placeholder variables to the liquid object.
+// Evaluate the configuration, adding defined placeholder variables to the template object.
 fn fill_placeholders_and_merge_conditionals(
     config: &mut Config,
-    liquid_object: &LiquidObjectResource,
+    template_object: &TemplateObjectResource,
     template_values: &HashMap<String, toml::Value>,
     args: &GenerateArgs,
 ) -> Result<()> {
@@ -677,7 +677,7 @@ fn fill_placeholders_and_merge_conditionals(
 
     loop {
         // keep evaluating for placeholder variables as long new ones are added.
-        project_variables::fill_project_variables(liquid_object, config, |slot| {
+        project_variables::fill_project_variables(template_object, config, |slot| {
             let provided_value = template_values
                 .get(&slot.var_name)
                 .and_then(extract_toml_string);
@@ -700,7 +700,7 @@ fn fill_placeholders_and_merge_conditionals(
             .iter_mut()
             // filter each conditional config block by trueness of the expression, given the known variables
             .filter_map(|(key, cfg)| {
-                evaluate_script::<bool>(liquid_object, key)
+                evaluate_script::<bool>(template_object, key)
                     .ok()
                     .filter(|&r| r)
                     .map(|_| cfg)

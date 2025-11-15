@@ -1,4 +1,4 @@
-use crate::{template::LiquidObjectResource, Result};
+use crate::{template::TemplateObjectResource, Result};
 
 use crate::template::render_string_gracefully;
 use minijinja::Environment;
@@ -7,7 +7,7 @@ use std::path::{Component, Path, PathBuf};
 pub fn substitute_filename(
     filepath: &Path,
     parser: &Environment,
-    context: &LiquidObjectResource,
+    context: &TemplateObjectResource,
     preserve_whitespace: bool,
 ) -> Result<PathBuf> {
     let mut path = PathBuf::new();
@@ -155,14 +155,14 @@ mod tests {
     }
 
     //region wrapper helpers
-    fn prepare_context(value: &str) -> LiquidObjectResource {
+    fn prepare_context(value: &str) -> TemplateObjectResource {
         let mut ctx = Map::new();
         ctx.insert("author".to_string(), Value::String(value.to_string()));
 
         Arc::new(Mutex::new(RefCell::new(ctx)))
     }
 
-    fn substitute_filename(f: &str, ctx: &LiquidObjectResource) -> Result<String> {
+    fn substitute_filename(f: &str, ctx: &TemplateObjectResource) -> Result<String> {
         let mut env = minijinja::Environment::new();
         env.set_trim_blocks(true);
         env.set_lstrip_blocks(true);

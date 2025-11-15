@@ -3,17 +3,17 @@ use rhai::{Array, Dynamic, Module};
 
 use crate::interactive::prompt_and_check_variable;
 use crate::project_variables::{StringEntry, StringKind, TemplateSlots, VarInfo};
-use crate::template::LiquidObjectResource;
+use crate::template::TemplateObjectResource;
 
 use super::{HookResult, PoisonError};
 
-pub fn create_module(liquid_object: &LiquidObjectResource) -> Module {
+pub fn create_module(template_object: &TemplateObjectResource) -> Module {
     let mut module = Module::new();
 
     module.set_native_fn("is_set", {
-        let liquid_object = liquid_object.clone();
+        let template_object = template_object.clone();
         move |name: &str| -> HookResult<bool> {
-            match liquid_object.get_value(name)? {
+            match template_object.get_value(name)? {
                 NamedValue::NonExistent => Ok(false),
                 _ => Ok(true),
             }
@@ -21,9 +21,9 @@ pub fn create_module(liquid_object: &LiquidObjectResource) -> Module {
     });
 
     module.set_native_fn("get", {
-        let liquid_object = liquid_object.clone();
+        let template_object = template_object.clone();
         move |name: &str| -> HookResult<Dynamic> {
-            match liquid_object.get_value(name)? {
+            match template_object.get_value(name)? {
                 NamedValue::NonExistent => Ok(Dynamic::from(String::from(""))),
                 NamedValue::Bool(v) => Ok(Dynamic::from(v)),
                 NamedValue::String(v) => Ok(Dynamic::from(v)),
@@ -39,11 +39,11 @@ pub fn create_module(liquid_object: &LiquidObjectResource) -> Module {
     });
 
     module.set_native_fn("set", {
-        let liquid_object = liquid_object.clone();
+        let template_object = template_object.clone();
         move |name: &str, value: &str| -> HookResult<()> {
-            match liquid_object.get_value(name)? {
+            match template_object.get_value(name)? {
                 NamedValue::NonExistent | NamedValue::String(_) => {
-                    liquid_object
+                    template_object
                         .lock()
                         .map_err(|_| PoisonError::new_eval_alt_result())?
                         .borrow_mut()
@@ -59,11 +59,11 @@ pub fn create_module(liquid_object: &LiquidObjectResource) -> Module {
     });
 
     module.set_native_fn("set", {
-        let liquid_object = liquid_object.clone();
+        let template_object = template_object.clone();
         move |name: &str, value: bool| -> HookResult<()> {
-            match liquid_object.get_value(name)? {
+            match template_object.get_value(name)? {
                 NamedValue::NonExistent | NamedValue::Bool(_) => {
-                    liquid_object
+                    template_object
                         .lock()
                         .map_err(|_| PoisonError::new_eval_alt_result())?
                         .borrow_mut()
@@ -76,12 +76,12 @@ pub fn create_module(liquid_object: &LiquidObjectResource) -> Module {
     });
 
     module.set_native_fn("set", {
-        let liquid_object = liquid_object.clone();
+        let template_object = template_object.clone();
         move |name: &str, value: Array| -> HookResult<()> {
-            match liquid_object.get_value(name)? {
+            match template_object.get_value(name)? {
                 NamedValue::NonExistent | NamedValue::Array(_) => {
                     let val = rhai_to_liquid_value(Dynamic::from(value))?;
-                    liquid_object
+                    template_object
                         .lock()
                         .map_err(|_| PoisonError::new_eval_alt_result())?
                         .borrow_mut()
@@ -228,7 +228,7 @@ trait GetNamedValue {
     fn get_value(&self, name: &str) -> HookResult<NamedValue>;
 }
 
-impl GetNamedValue for LiquidObjectResource {
+impl GetNamedValue for TemplateObjectResource {
     fn get_value(&self, name: &str) -> HookResult<NamedValue> {
         let lock = self.lock()
             .map_err(|_| PoisonError::new_eval_alt_result())?;
@@ -289,9 +289,9 @@ mod tests {
     #[test]
     fn test_rhai_set() {
         let mut engine = rhai::Engine::new();
-        let liquid_object = Arc::new(Mutex::new(RefCell::new(serde_json::Map::new())));
+        let template_object = Arc::new(Mutex::new(RefCell::new(serde_json::Map::new())));
 
-        let module = create_module(&liquid_object);
+        let module = create_module(&template_object);
         engine.register_static_module("variable", module.into());
 
         engine
@@ -304,10 +304,10 @@ mod tests {
             )
             .unwrap();
 
-        let ref_cell = liquid_object.lock().unwrap();
-        let liquid_object = ref_cell.borrow();
+        let ref_cell = template_object.lock().unwrap();
+        let template_object = ref_cell.borrow();
 
-        let deps_value = liquid_object.get("dependencies");
+        let deps_value = template_object.get("dependencies");
         assert!(deps_value.is_some());
         
         // Check that it's an array with the expected values
